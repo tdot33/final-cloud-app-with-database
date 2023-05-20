@@ -47,6 +47,35 @@
                     <div class="card mt-1">
                         <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
                         <div class="card-body">{{lesson.content}}</div>
+                        {% if user.is_authenticated %}
+                        <a href="#exam" data-toggle="collapse">See Exam Questions</a>
+                        <div id="exam" class="collapse">
+                            <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                                <form action="{% url 'onlinecourse:enroll' course.id %}" method="post">
+                                    {% csrf_token %}
+                                {% for question in course.question_set.all %}
+                                <div class="card mt-1">
+                                    <div class="card-header"><h5>{{ question.question_text}}</h5></div>
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                       {% for choice in question.choice_set.all %}
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input type="checkbox" name="choice_{{choice.id}}"
+                                                       class="form-check-input" id="{{choice.id}}"
+                                                       value="{{choice.id}}">{{ choice.choice_text }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            <input class="btn btn-success btn-block" type="submit" value="Submit">
+                            {% endfor %}
+                            </form>
+                        </div>
+                        {% else %}
+                        <p>Not enrolled yet.</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>
@@ -57,9 +86,7 @@
             <!--
 
             A collapse example here:
-            <div id="exam" class="collapse">
-                Click to expand elements within the collapse div
-                </div>
+            
 
             -->
 
