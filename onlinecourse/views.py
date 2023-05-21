@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.contrib.auth import login, logout, authenticate
+from fractions import Fraction
+from django.db.models import Sum
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -115,7 +117,7 @@ class SubmitView(generic.DetailView):
 
 def submit(request, course_id):
     if request.method == 'POST':
-        course = get_object_or_404(Course, course_id=course_id)
+        course = get_object_or_404(Course, pk=course_id)
         user = request.user
         enrollment = Enrollment.objects.get(user=user, course=course)
         
@@ -127,7 +129,6 @@ def submit(request, course_id):
             submission.choices.add(choice)
         
         # Redirect to the exam result page with the submission ID
-        
         return HttpResponseRedirect(reverse(viewname='onlinecourse:exam_result', args=(course.id,submission.id,)))
     else:
         # Handle the case when the form is not submitted properly
@@ -159,21 +160,24 @@ def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
     submission = get_object_or_404(Submission, pk=submission_id)
 
-    selected_choice_ids = submission.choices.values_list('id', flat=True)
+    selected_ids = submission.choices.values_list('id', flat=True)
     total_score = 0
 
     for choice in submission.choices.all():
-        if not choice.is_incorrect:
-            total_score += choice.question.grade
+        question = choice.question
+        if question.is_get_score(selected_ids):
+            total_score += question.grade
 
-    final_grade = total_score /  submission.choices.aggregate(total_grade=Sum('grade')).get('total_grade')
-
+    full_grade = submission.choices.aggregate(total_grade=Sum('question__grade')).get('total_grade')
+    final_grade = total_score / full_grade
+    final_grade_fraction = Fraction(final_grade).limit_denominator()
     context = {
         'course': course,
         'submission': submission,
-        'selected_choice_ids': selected_choice_ids,
+        'selected_ids': selected_ids,
         'total_score': total_score,
         'final_grade' : final_grade,
+        'final_grade_fraction' : final_grade_fraction,
     }
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
