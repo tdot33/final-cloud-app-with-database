@@ -115,9 +115,9 @@ class SubmitView(generic.DetailView):
 
 def submit(request, course_id):
     if request.method == 'POST':
-        course = get_object_or_404(Course, pk=course_id)
+        course = get_object_or_404(Course, course_id=course_id)
         user = request.user
-        enrollment = get_object_or_404(Enrollment, user=user, course=course)
+        enrollment = Enrollment.objects.get(user=user, course=course)
         
         submission = Submission.objects.create(enrollment=enrollment)
         submitted_answers = extract_answers(request)
@@ -155,9 +155,9 @@ def get_enrollment(request, course_id):
         # Get the selected choice ids from the submission record
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
-def show_exam_result(request, course_id):
+def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
-    submission = get_object_or_404(Submission, submission_id=submission_id)
+    submission = get_object_or_404(Submission, pk=submission_id)
 
     selected_choice_ids = submission.choices.values_list('id', flat=True)
     total_score = 0
@@ -166,11 +166,14 @@ def show_exam_result(request, course_id):
         if not choice.is_incorrect:
             total_score += choice.question.grade
 
+    final_grade = total_score /  submission.choices.aggregate(total_grade=Sum('grade')).get('total_grade')
+
     context = {
         'course': course,
         'submission': submission,
         'selected_choice_ids': selected_choice_ids,
         'total_score': total_score,
+        'final_grade' : final_grade,
     }
 
-    return render(request, 'onlinecourse/exam_result.html', context)
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
