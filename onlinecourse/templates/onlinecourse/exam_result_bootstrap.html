@@ -53,13 +53,12 @@
                 <div class="card-header"><h5>{{ choice.question.question_text }}</h5></div>
                 {% if choice.is_incorrect %}
                     <div class="card-body">
-                        <p>Your choice: {{ choice.choice_text }}</p>
-                        <p>Correct choice: {{ choice.question.get_correct_choice.choice_text }}</p>
+                        <p class="text-danger">Your choice: {{ choice.choice_text }}</p>
+                        <p class="text-success">Correct choice: {{ choice.question.get_correct_choice.choice_text }}</p>
                     </div>
                 {% else %}
                     <div class="card-body">
-                        <p>Your choice: {{ choice.choice_text }}</p>
-                        <p>Correct choice: {{ choice.choice_text }}</p>
+                        <p class="text-success">Your choice: {{ choice.choice_text }}</p>
                     </div>
                 {% endif %}
             </div>
