@@ -176,6 +176,7 @@ def show_exam_result(request, course_id, submission_id):
         'submission': submission,
         'selected_ids': selected_ids,
         'total_score': total_score,
+        'full_grade' : full_grade,
         'final_grade' : final_grade,
         'final_grade_fraction' : final_grade_fraction,
     }

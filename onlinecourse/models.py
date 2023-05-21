@@ -75,7 +75,9 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     content = models.TextField()
 
-
+    def __str__(self):
+        return self.title
+    
 # Enrollment model
 # <HINT> Once a user enrolled a class, an enrollment entry should be created between the user and course
 # And we could use the enrollment to track information such as exam submissions
@@ -122,6 +124,9 @@ class Question(models.Model):
     def get_correct_choice(self):
         correct_choice = self.choice_set.filter(is_incorrect=False).first()
         return correct_choice
+    
+    def __str__(self):
+        return self.question_text
 
 class Choice(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
