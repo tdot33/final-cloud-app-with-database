@@ -66,7 +66,24 @@ class Course(models.Model):
     def __str__(self):
         return "Name: " + self.name + "," + \
                "Description: " + self.description
+    
+    def save(self, *args, **kwargs):
+    is_new_course = self.pk is None  # Check if it's a new course being created
 
+    # Save the course
+    super().save(*args, **kwargs)
+
+    if is_new_course:
+        # Assign the course to associated lessons and questions
+        lessons = self.lesson_set.all()
+        for lesson in lessons:
+            lesson.course = self
+            lesson.save()
+
+            questions = lesson.question_set.all()
+            for question in questions:
+                question.course = self
+                question.save()
 
 # Lesson model
 class Lesson(models.Model):
